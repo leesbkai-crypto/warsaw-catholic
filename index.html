@@ -517,13 +517,16 @@
         </div>
       </div>
     </section>
-  <!-- ==================== 모달 1: '미사 추가 / 수정' 통합 모달 (날짜 선택 후 '매일미사 불러오기' 연동) ==================== -->
+
+  </main>
+
+  <!-- ==================== 모달 1: '미사 추가' 전용 모달 (신규 등록 전용 1~5단계) ==================== -->
   <div id="addMassModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-stone-200 overflow-hidden my-6">
       <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
         <div>
-          <h3 id="addMassModalHeaderTitle" class="text-base font-bold">미사 추가 (굿뉴스 매일미사 · 성가 · 교우록 연동)</h3>
-          <p id="addMassModalHeaderSub" class="text-xs text-slate-300 mt-0.5">날짜를 고른 뒤 [매일미사 불러오기] 버튼을 누르면 전례와 말씀이 반영됩니다.</p>
+          <h3 class="text-base font-bold">미사 추가 (굿뉴스 매일미사 · 성가 · 교우록 연동)</h3>
+          <p class="text-xs text-slate-300 mt-0.5">날짜를 고른 뒤 [매일미사 불러오기] 버튼을 누르면 전례와 말씀이 반영됩니다.</p>
         </div>
         <button type="button" onclick="closeModal('addMassModal')" class="text-slate-400 hover:text-white p-1">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
@@ -539,7 +542,7 @@
           </div>
           <div class="flex gap-2">
             <input type="date" id="newMassDatePicker" onchange="onNewMassDateChanged(this.value)" required class="flex-1 px-3 py-2 rounded-xl border border-amber-300 bg-white text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-600" />
-            <button type="button" onclick="fetchDailyMissaForDate(document.getElementById('newMassDatePicker').value)" class="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 active:scale-95 text-white text-xs font-bold shrink-0 shadow-sm transition">
+            <button type="button" onclick="fetchDailyMissaForDate(document.getElementById('newMassDatePicker').value, 'new')" class="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 active:scale-95 text-white text-xs font-bold shrink-0 shadow-sm transition">
               매일미사 불러오기
             </button>
           </div>
@@ -560,7 +563,7 @@
         <!-- 2단계: 등록 구분, 표기 날짜, 미사 시간(디폴트 09:30), 전례색 및 전례력 명칭 -->
         <div class="space-y-3 border border-stone-200 rounded-xl p-3.5 bg-white">
           <span class="block text-xs font-extrabold text-slate-800">2단계 · 미사 구분 및 전례 정보 (수정 가능)</span>
-          <div id="newMassModeRadioGroup" class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-2 gap-2">
             <label class="flex items-center gap-2 p-2.5 rounded-xl border border-stone-200 bg-stone-50 cursor-pointer text-xs font-bold text-slate-800">
               <input type="radio" name="newMassMode" value="special" checked class="accent-amber-700" />
               특별미사 탭으로 추가
@@ -569,9 +572,6 @@
               <input type="radio" name="newMassMode" value="sunday" class="accent-amber-700" />
               새 주일 미사로 교체
             </label>
-          </div>
-          <div id="editMassModeNotice" class="hidden px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900">
-            현재 선택된 미사의 시간·전례·성가·봉사자·주보 말씀을 직접 수정합니다.
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -751,13 +751,243 @@
 
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeModal('addMassModal')" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-xs font-bold text-slate-700">취소</button>
-          <button type="submit" id="addMassSubmitBtn" class="px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-sm">미사 등록하기</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-sm">미사 등록하기</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ==================== 모달 2: 지난 주보 보기 (생성된 주보 리스트 보관함) 모달 ==================== -->
+  <!-- ==================== 모달 1-B: '수정' 전용 모달 (미사 추가와 동일한 1~5단계 포맷 · 독립된 수정 전용 창) ==================== -->
+  <div id="editMassModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-stone-200 overflow-hidden my-6">
+      <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold">미사 및 주보 수정 (매일미사 · 성가 · 봉사자 · 전례문)</h3>
+          <p class="text-xs text-slate-300 mt-0.5">선택된 미사의 날짜·전례·성가·봉사자·주보 말씀을 수정하고 저장합니다.</p>
+        </div>
+        <button type="button" onclick="closeModal('editMassModal')" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <form onsubmit="submitEditMass(event)" class="p-5 space-y-4 max-h-[82vh] overflow-y-auto">
+        <!-- 1단계: 날짜 선택 및 '매일미사 불러오기' 실행 버튼 -->
+        <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-extrabold text-amber-950">1단계 · 미사 날짜 변경 또는 매일미사 다시 불러오기</label>
+            <span id="editDailyMissaBadge" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">현재 미사 정보</span>
+          </div>
+          <div class="flex gap-2">
+            <input type="date" id="editMassDatePicker" onchange="onEditMassDateChanged(this.value)" required class="flex-1 px-3 py-2 rounded-xl border border-amber-300 bg-white text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-600" />
+            <button type="button" onclick="fetchDailyMissaForDate(document.getElementById('editMassDatePicker').value, 'edit')" class="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 active:scale-95 text-white text-xs font-bold shrink-0 shadow-sm transition">
+              매일미사 불러오기
+            </button>
+          </div>
+          <p id="editDailyMissaFetchStatus" class="text-[11px] font-semibold text-amber-900">
+            현재 미사 정보가 불러와졌습니다. 날짜를 바꾼 뒤 <strong>[매일미사 불러오기]</strong>를 누르면 새 전례문으로 갱신됩니다.
+          </p>
+
+          <!-- 한·영 전례 불일치 경고 배너 -->
+          <div id="editMassGospelDiffAlert" class="hidden bg-rose-50 border-2 border-rose-400 border-l-8 border-l-rose-600 rounded-xl p-3 space-y-1">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-extrabold text-rose-800">⚠️ [경고] 한글전례가 영문전례와 다릅니다!</span>
+              <span class="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold">현지 전례 확인</span>
+            </div>
+            <p id="editMassGospelDiffDetail" class="text-[11px] text-rose-900 font-semibold"></p>
+          </div>
+        </div>
+
+        <!-- 2단계: 표기 날짜, 미사 시간, 전례색 및 전례력 명칭 -->
+        <div class="space-y-3 border border-stone-200 rounded-xl p-3.5 bg-white">
+          <span class="block text-xs font-extrabold text-slate-800">2단계 · 미사 시간 및 전례 정보 수정</span>
+          <div class="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900">
+            현재 선택된 미사 탭의 정보를 직접 수정합니다.
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div class="sm:col-span-2">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">표기 날짜 (수정 가능)</label>
+              <input type="text" id="editMassFormattedDate" required class="w-full px-3 py-2 rounded-xl border border-stone-300 text-sm" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">미사 시간</label>
+              <input type="text" id="editMassTime" required class="w-full px-3 py-2 rounded-xl border border-stone-300 text-sm font-bold" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">전례색</label>
+              <select id="editMassColor" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-sm bg-white font-semibold">
+                <option value="green">녹색 (연중시기)</option>
+                <option value="white">백색 (대축일·성탄·부활)</option>
+                <option value="purple">자색 (대림·사순·위령)</option>
+                <option value="red">홍색 (순교·성령)</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">전례력 및 미사 명칭 ((녹/백/자/홍) 입력 시 색상 자동 전환)</label>
+              <input type="text" id="editMassTitle" oninput="autoDetectColorFromTitle(this.value, 'editMassColor')" required class="w-full px-3 py-2 rounded-xl border border-stone-300 text-sm font-bold" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 3단계: 성가 4곡 자동완성 -->
+        <div class="bg-stone-50 border border-stone-200 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-slate-800">3단계 · 성가 수정 (번호·제목 자동완성)</span>
+            <span class="text-[11px] text-amber-800 font-semibold">예: 16, 172, 215</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">입당성가</label>
+              <input type="text" id="editMassHymnEntrance" autocomplete="off" oninput="handleHymnAutocomplete(this, 'editHymnSuggest-entrance')" onfocus="handleHymnAutocomplete(this, 'editHymnSuggest-entrance')" placeholder="번호 또는 제목 입력" class="w-full px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold bg-white focus:outline-none focus:border-amber-600" />
+              <div id="editHymnSuggest-entrance" class="autocomplete-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-stone-300 rounded-xl shadow-lg max-h-36 overflow-y-auto"></div>
+            </div>
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">봉헌성가</label>
+              <input type="text" id="editMassHymnOffertory" autocomplete="off" oninput="handleHymnAutocomplete(this, 'editHymnSuggest-offertory')" onfocus="handleHymnAutocomplete(this, 'editHymnSuggest-offertory')" placeholder="번호 또는 제목 입력" class="w-full px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold bg-white focus:outline-none focus:border-amber-600" />
+              <div id="editHymnSuggest-offertory" class="autocomplete-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-stone-300 rounded-xl shadow-lg max-h-36 overflow-y-auto"></div>
+            </div>
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">성체(영성체)성가</label>
+              <input type="text" id="editMassHymnCommunion" autocomplete="off" oninput="handleHymnAutocomplete(this, 'editHymnSuggest-communion')" onfocus="handleHymnAutocomplete(this, 'editHymnSuggest-communion')" placeholder="번호 또는 제목 입력" class="w-full px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold bg-white focus:outline-none focus:border-amber-600" />
+              <div id="editHymnSuggest-communion" class="autocomplete-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-stone-300 rounded-xl shadow-lg max-h-36 overflow-y-auto"></div>
+            </div>
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">파견성가</label>
+              <input type="text" id="editMassHymnRecessional" autocomplete="off" oninput="handleHymnAutocomplete(this, 'editHymnSuggest-recessional')" onfocus="handleHymnAutocomplete(this, 'editHymnSuggest-recessional')" placeholder="번호 또는 제목 입력" class="w-full px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold bg-white focus:outline-none focus:border-amber-600" />
+              <div id="editHymnSuggest-recessional" class="autocomplete-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-stone-300 rounded-xl shadow-lg max-h-36 overflow-y-auto"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4단계: 전례 봉사자 배정 (현재 신자 교우록 자동완성 연동) -->
+        <div class="bg-stone-50 border border-stone-200 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-slate-800">4단계 · 전례 봉사자 수정 (교우록 자동완성)</span>
+            <span class="text-[10px] text-slate-500">제2독서 비움 시 자동 숨김</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">해설</label>
+              <input type="text" id="editMassVolCommentator" autocomplete="off" oninput="handleVolunteerAutocomplete(this, 'editVolSuggest-commentator')" onfocus="handleVolunteerAutocomplete(this, 'editVolSuggest-commentator')" placeholder="이름 또는 세례명 검색" class="w-full px-3 py-1.5 rounded-lg border border-stone-300 text-xs bg-white focus:outline-none focus:border-amber-600" />
+              <div id="editVolSuggest-commentator" class="autocomplete-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-stone-300 rounded-xl shadow-lg max-h-36 overflow-y-auto"></div>
+            </div>
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">제1독서</label>
+              <input type="text" id="editMassVolReading1" autocomplete="off" oninput="handleVolunteerAutocomplete(this, 'editVolSuggest-reading1')" onfocus="handleVolunteerAutocomplete(this, 'editVolSuggest-reading1')" placeholder="이름 또는 세례명 검색" class="w-full px-3 py-1.5 rounded-lg border border-stone-300 text-xs bg-white focus:outline-none focus:border-amber-600" />
+              <div id="editVolSuggest-reading1" class="autocomplete-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-stone-300 rounded-xl shadow-lg max-h-36 overflow-y-auto"></div>
+            </div>
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">제2독서 (평일은 비워둠)</label>
+              <input type="text" id="editMassVolReading2" autocomplete="off" oninput="handleVolunteerAutocomplete(this, 'editVolSuggest-reading2')" onfocus="handleVolunteerAutocomplete(this, 'editVolSuggest-reading2')" placeholder="이름 또는 세례명 검색" class="w-full px-3 py-1.5 rounded-lg border border-stone-300 text-xs bg-white focus:outline-none focus:border-amber-600" />
+              <div id="editVolSuggest-reading2" class="autocomplete-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-stone-300 rounded-xl shadow-lg max-h-36 overflow-y-auto"></div>
+            </div>
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">제1복사</label>
+              <input type="text" id="editMassVolServer1" autocomplete="off" oninput="handleVolunteerAutocomplete(this, 'editVolSuggest-server1')" onfocus="handleVolunteerAutocomplete(this, 'editVolSuggest-server1')" placeholder="이름 또는 세례명 검색" class="w-full px-3 py-1.5 rounded-lg border border-stone-300 text-xs bg-white focus:outline-none focus:border-amber-600" />
+              <div id="editVolSuggest-server1" class="autocomplete-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-stone-300 rounded-xl shadow-lg max-h-36 overflow-y-auto"></div>
+            </div>
+            <div class="relative sm:col-span-2">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">제2복사</label>
+              <input type="text" id="editMassVolServer2" autocomplete="off" oninput="handleVolunteerAutocomplete(this, 'editVolSuggest-server2')" onfocus="handleVolunteerAutocomplete(this, 'editVolSuggest-server2')" placeholder="이름 또는 세례명 검색" class="w-full px-3 py-1.5 rounded-lg border border-stone-300 text-xs bg-white focus:outline-none focus:border-amber-600" />
+              <div id="editVolSuggest-server2" class="autocomplete-dropdown hidden absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-stone-300 rounded-xl shadow-lg max-h-36 overflow-y-auto"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5단계: 주보용 전체 전례 말씀 확인 및 수정 (9개 섹션) -->
+        <details class="border border-stone-200 rounded-xl bg-white overflow-hidden">
+          <summary class="px-3.5 py-2.5 bg-stone-100/80 text-xs font-extrabold text-slate-800 cursor-pointer flex items-center justify-between">
+            <span>5단계 · 주보용 전례 말씀 확인 및 수정 (오늘 전례 · 독서 · 복음 · 묵상)</span>
+            <span class="text-[11px] text-amber-800">펼치기 ▾</span>
+          </summary>
+          <div class="p-3.5 space-y-3 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">🕯️ 오늘 전례</label>
+              <textarea id="editMassTodayLiturgy" rows="2" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs leading-relaxed"></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">📖 제1독서 구절</label>
+                <input type="text" id="editMassRefReading1" class="w-full px-2.5 py-1.5 rounded-xl border border-stone-300 text-xs bg-stone-50" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">📖 제1독서 본문</label>
+                <textarea id="editMassReading1Text" rows="3" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs leading-relaxed"></textarea>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">🎶 화답송 구절</label>
+                <input type="text" id="editMassRefPsalm" class="w-full px-2.5 py-1.5 rounded-xl border border-stone-300 text-xs bg-stone-50" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">🎶 화답송 본문</label>
+                <textarea id="editMassPsalmText" rows="2" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs leading-relaxed"></textarea>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">📖 제2독서 구절</label>
+                <input type="text" id="editMassRefReading2" class="w-full px-2.5 py-1.5 rounded-xl border border-stone-300 text-xs bg-stone-50" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">📖 제2독서 본문 (없을 시 비움)</label>
+                <textarea id="editMassReading2Text" rows="2" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs leading-relaxed"></textarea>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">🎺 복음환호송 구절</label>
+                <input type="text" id="editMassRefAcclamation" class="w-full px-2.5 py-1.5 rounded-xl border border-stone-300 text-xs bg-stone-50" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">🎺 복음환호송 본문</label>
+                <textarea id="editMassAcclamationText" rows="2" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs leading-relaxed"></textarea>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label class="block font-bold text-amber-900 mb-1">✝️ 복음 구절</label>
+                <input type="text" id="editMassRefGospel" class="w-full px-2.5 py-1.5 rounded-xl border border-amber-300 text-xs font-bold bg-amber-50/40" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-bold text-amber-900 mb-1">✝️ 복음 말씀 본문</label>
+                <textarea id="editMassGospelText" rows="3" class="w-full px-3 py-2 rounded-xl border border-amber-300 text-xs leading-relaxed"></textarea>
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">🕊️ 보편지향기도</label>
+              <textarea id="editMassPrayersText" rows="2" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs leading-relaxed"></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">🍞 영성체송 구절</label>
+                <input type="text" id="editMassRefCommunion" class="w-full px-2.5 py-1.5 rounded-xl border border-stone-300 text-xs bg-stone-50" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">🍞 영성체송 본문</label>
+                <textarea id="editMassCommunionText" rows="2" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs leading-relaxed"></textarea>
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">💭 영성체 후 묵상</label>
+              <textarea id="editMassMeditationText" rows="2" class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs leading-relaxed"></textarea>
+            </div>
+          </div>
+        </details>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('editMassModal')" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-xs font-bold text-slate-700">취소</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm">수정 내용 저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 모달 2: 지난 주보 보기 (5개씩 페이지네이션 적용) ==================== -->
   <div id="pastLeafletsModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-stone-200 overflow-hidden my-6">
       <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
@@ -767,10 +997,17 @@
         </div>
         <button type="button" onclick="closeModal('pastLeafletsModal')" class="text-slate-400 hover:text-white p-1">✕</button>
       </div>
-      <div class="p-5 space-y-3 max-h-[75vh] overflow-y-auto">
-        <p class="text-xs text-slate-500">지금까지 생성·봉헌된 미사 주보 목록입니다. 항목을 선택하면 해당 주보 전문을 열람하거나 인쇄할 수 있습니다.</p>
+      <div class="p-5 space-y-3.5 max-h-[75vh] overflow-y-auto">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-xs text-slate-500">생성·봉헌된 미사 주보 목록입니다. (페이지당 5건 표시)</p>
+          <span id="pastLeafletsTotalBadge" class="shrink-0 px-2.5 py-0.5 rounded-full bg-stone-100 text-slate-700 text-[11px] font-bold">총 0건</span>
+        </div>
         <div id="pastLeafletsListContainer" class="divide-y divide-stone-100 border border-stone-200 rounded-xl overflow-hidden bg-stone-50/50">
-          <!-- JS로 주보 리스트 렌더링 -->
+          <!-- JS로 주보 리스트 (5개씩) 렌더링 -->
+        </div>
+        <!-- 페이지네이션 컨트롤 (1, 2, 3...) -->
+        <div id="pastLeafletsPagination" class="flex items-center justify-center gap-1.5 pt-1">
+          <!-- JS로 페이지 번호 버튼 렌더링 -->
         </div>
       </div>
       <div class="px-5 py-3 bg-stone-50 border-t border-stone-200 flex justify-end">
@@ -970,11 +1207,20 @@
     // ==================== 전역 상태 및 초기 데이터 ====================
     let currentRole = 'admin';
     let activeMassId = 'sunday-main';
-    let editingMassId = null; // null이면 '미사 추가', 값이 있으면 해당 미사 '수정' 모드
+    let editingMassId = null; // '수정' 전용 창에서 편집 중인 미사 ID
+    let pastLeafletsCurrentPage = 1; // 지난 주보 보기 현재 페이지 번호
+    const PAST_LEAFLETS_PER_PAGE = 5; // 한 페이지당 표시할 지난 주보 수 (5건)
     let currentNoticeCategory = 'all';
     let currentMemberGroup = 'active';
     let wakeLockSentinel = null;
     let currentFetchedMeta = {
+      source_url: '',
+      en_source_url: '',
+      gospel_diff: false,
+      ko_gospel_ref: '',
+      en_gospel_ref: ''
+    };
+    let editFetchedMeta = {
       source_url: '',
       en_source_url: '',
       gospel_diff: false,
@@ -1618,18 +1864,12 @@
       renderMassSection();
     }
 
-    // ==================== '미사 추가' 및 '수정' 통합 모달 로직 ====================
+    // ==================== '미사 추가' 전용 모달 & '수정' 전용 모달 분리 로직 ====================
     function openAddMassModal() {
-      editingMassId = null;
-      document.getElementById('addMassModalHeaderTitle').textContent = '미사 추가 (굿뉴스 매일미사 · 성가 · 교우록 연동)';
-      document.getElementById('addMassModalHeaderSub').textContent = '날짜를 고른 뒤 [매일미사 불러오기] 버튼을 누르면 전례와 말씀이 반영됩니다.';
-      document.getElementById('addMassSubmitBtn').textContent = '미사 등록하기';
-      document.getElementById('newMassModeRadioGroup').classList.remove('hidden');
-      document.getElementById('editMassModeNotice').classList.add('hidden');
-
       const defaultIso = '2026-11-22';
       document.getElementById('newMassDatePicker').value = defaultIso;
       document.getElementById('newMassTime').value = '오전 09:30';
+      document.getElementById('newMassColor').value = 'green';
       document.getElementById('newMassTitle').value = '';
       document.getElementById('newMassHymnEntrance').value = '';
       document.getElementById('newMassHymnOffertory').value = '';
@@ -1640,6 +1880,21 @@
       document.getElementById('newMassVolReading2').value = '';
       document.getElementById('newMassVolServer1').value = '';
       document.getElementById('newMassVolServer2').value = '';
+      document.getElementById('newMassTodayLiturgy').value = '';
+      document.getElementById('newMassRefReading1').value = '';
+      document.getElementById('newMassReading1Text').value = '';
+      document.getElementById('newMassRefPsalm').value = '';
+      document.getElementById('newMassPsalmText').value = '';
+      document.getElementById('newMassRefReading2').value = '';
+      document.getElementById('newMassReading2Text').value = '';
+      document.getElementById('newMassRefAcclamation').value = '';
+      document.getElementById('newMassAcclamationText').value = '';
+      document.getElementById('newMassRefGospel').value = '';
+      document.getElementById('newMassGospelText').value = '';
+      document.getElementById('newMassPrayersText').value = '';
+      document.getElementById('newMassRefCommunion').value = '';
+      document.getElementById('newMassCommunionText').value = '';
+      document.getElementById('newMassMeditationText').value = '';
       document.getElementById('newMassGospelDiffAlert').classList.add('hidden');
 
       onNewMassDateChanged(defaultIso);
@@ -1662,12 +1917,30 @@
       statusEl.innerHTML = '날짜가 선택되었습니다. 우측의 <strong>[매일미사 불러오기]</strong> 버튼을 눌러 전례와 말씀을 가져오세요.';
     }
 
-    async function fetchDailyMissaForDate(isoDate) {
+    function onEditMassDateChanged(isoDate) {
       if (!isoDate) return;
-      const statusEl = document.getElementById('dailyMissaFetchStatus');
-      const badgeEl = document.getElementById('dailyMissaBadge');
-      const diffAlertEl = document.getElementById('newMassGospelDiffAlert');
-      const diffDetailEl = document.getElementById('newMassGospelDiffDetail');
+      const dateObj = new Date(isoDate + 'T12:00:00');
+      const daysKo = ['주일', '월', '화', '수', '목', '금', '토'];
+      const yyyy = dateObj.getFullYear();
+      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      document.getElementById('editMassFormattedDate').value = `${yyyy}년 ${mm}월 ${dd}일 (${daysKo[dateObj.getDay()]})`;
+
+      const badgeEl = document.getElementById('editDailyMissaBadge');
+      const statusEl = document.getElementById('editDailyMissaFetchStatus');
+      badgeEl.textContent = '불러오기 대기';
+      badgeEl.className = 'px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-extrabold';
+      statusEl.innerHTML = '날짜가 변경되었습니다. 우측의 <strong>[매일미사 불러오기]</strong> 버튼을 누르면 해당 날짜 전례문으로 갱신됩니다.';
+    }
+
+    async function fetchDailyMissaForDate(isoDate, targetForm = 'new') {
+      if (!isoDate) return;
+      const isEdit = targetForm === 'edit';
+      const prefix = isEdit ? 'editMass' : 'newMass';
+      const statusEl = document.getElementById(isEdit ? 'editDailyMissaFetchStatus' : 'dailyMissaFetchStatus');
+      const badgeEl = document.getElementById(isEdit ? 'editDailyMissaBadge' : 'dailyMissaBadge');
+      const diffAlertEl = document.getElementById(isEdit ? 'editMassGospelDiffAlert' : 'newMassGospelDiffAlert');
+      const diffDetailEl = document.getElementById(isEdit ? 'editMassGospelDiffDetail' : 'newMassGospelDiffDetail');
 
       badgeEl.textContent = '불러오는 중...';
       badgeEl.className = 'px-2 py-0.5 rounded-full bg-amber-200 text-amber-950 text-[10px] font-extrabold animate-pulse';
@@ -1680,12 +1953,12 @@
       const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
       const dd = String(dateObj.getDate()).padStart(2, '0');
       const formattedDate = `${yyyy}년 ${mm}월 ${dd}일 (${daysKo[dayIdx]})`;
-      document.getElementById('newMassFormattedDate').value = formattedDate;
+      document.getElementById(`${prefix}FormattedDate`).value = formattedDate;
 
       let fetched = null;
       let fetchModeLabel = '';
 
-      // 1) 실제 Netlify 서버리스 함수 (/.netlify/functions/daily-missa) 호출 (실제 굿뉴스 웹사이트 실시간 크롤링)
+      // 1) 실제 Netlify 서버리스 함수 (/.netlify/functions/daily-missa) 호출
       try {
         const res = await fetch(`/.netlify/functions/daily-missa?date=${isoDate}`);
         if (res.ok) {
@@ -1696,7 +1969,7 @@
           }
         }
       } catch (e) {
-        // Netlify 서버리스 함수 미연결(로컬 미리보기 환경) 시 아래 2026 전례력 데이터베이스로 폴백
+        // Netlify 서버리스 함수 미연결 시 아래 2026 전례력 데이터베이스로 폴백
       }
 
       // 2) 2026년 굿뉴스 원문 정밀 데이터 (Netlify 미연결 환경 폴백용)
@@ -1819,34 +2092,34 @@
         fetchModeLabel = '✓ 굿뉴스 매일미사 전례력 반영 완료 (Netlify 서버 연결 시 전 날짜 실시간 크롤링)';
       }
 
-      // 폼 필드에 값 채우기
-      document.getElementById('newMassTitle').value = fetched.title || '';
-      document.getElementById('newMassColor').value = fetched.color || 'green';
-      autoDetectColorFromTitle(fetched.title, 'newMassColor');
+      // 대상 폼('new' 또는 'edit')에 값 채우기
+      document.getElementById(`${prefix}Title`).value = fetched.title || '';
+      document.getElementById(`${prefix}Color`).value = fetched.color || 'green';
+      autoDetectColorFromTitle(fetched.title, `${prefix}Color`);
 
-      document.getElementById('newMassHymnEntrance').value = formatHymnDisplay(fetched.hymns?.entrance || '');
-      document.getElementById('newMassHymnOffertory').value = formatHymnDisplay(fetched.hymns?.offertory || '');
-      document.getElementById('newMassHymnCommunion').value = formatHymnDisplay(fetched.hymns?.communion || '');
-      document.getElementById('newMassHymnRecessional').value = formatHymnDisplay(fetched.hymns?.recessional || '');
+      document.getElementById(`${prefix}HymnEntrance`).value = formatHymnDisplay(fetched.hymns?.entrance || '');
+      document.getElementById(`${prefix}HymnOffertory`).value = formatHymnDisplay(fetched.hymns?.offertory || '');
+      document.getElementById(`${prefix}HymnCommunion`).value = formatHymnDisplay(fetched.hymns?.communion || '');
+      document.getElementById(`${prefix}HymnRecessional`).value = formatHymnDisplay(fetched.hymns?.recessional || '');
 
       const r = fetched.readings || {};
-      document.getElementById('newMassTodayLiturgy').value = r.today_liturgy || '';
-      document.getElementById('newMassRefReading1').value = r.reading1_ref || '';
-      document.getElementById('newMassReading1Text').value = r.reading1 || '';
-      document.getElementById('newMassRefPsalm').value = r.psalm_ref || '';
-      document.getElementById('newMassPsalmText').value = r.psalm || '';
-      document.getElementById('newMassRefReading2').value = r.reading2_ref || '';
-      document.getElementById('newMassReading2Text').value = r.reading2 || '';
-      document.getElementById('newMassRefAcclamation').value = r.acclamation_ref || '';
-      document.getElementById('newMassAcclamationText').value = r.acclamation || '';
-      document.getElementById('newMassRefGospel').value = r.gospel_ref || '';
-      document.getElementById('newMassGospelText').value = r.gospel || '';
-      document.getElementById('newMassPrayersText').value = r.prayers || '';
-      document.getElementById('newMassRefCommunion').value = r.communion_ref || '';
-      document.getElementById('newMassCommunionText').value = r.communion || '';
-      document.getElementById('newMassMeditationText').value = r.meditation || '';
+      document.getElementById(`${prefix}TodayLiturgy`).value = r.today_liturgy || '';
+      document.getElementById(`${prefix}RefReading1`).value = r.reading1_ref || '';
+      document.getElementById(`${prefix}Reading1Text`).value = r.reading1 || '';
+      document.getElementById(`${prefix}RefPsalm`).value = r.psalm_ref || '';
+      document.getElementById(`${prefix}PsalmText`).value = r.psalm || '';
+      document.getElementById(`${prefix}RefReading2`).value = r.reading2_ref || '';
+      document.getElementById(`${prefix}Reading2Text`).value = r.reading2 || '';
+      document.getElementById(`${prefix}RefAcclamation`).value = r.acclamation_ref || '';
+      document.getElementById(`${prefix}AcclamationText`).value = r.acclamation || '';
+      document.getElementById(`${prefix}RefGospel`).value = r.gospel_ref || '';
+      document.getElementById(`${prefix}GospelText`).value = r.gospel || '';
+      document.getElementById(`${prefix}PrayersText`).value = r.prayers || '';
+      document.getElementById(`${prefix}RefCommunion`).value = r.communion_ref || '';
+      document.getElementById(`${prefix}CommunionText`).value = r.communion || '';
+      document.getElementById(`${prefix}MeditationText`).value = r.meditation || '';
 
-      currentFetchedMeta = {
+      const metaObj = {
         source_url: fetched.source_url || `https://maria.catholic.or.kr/mi_pr/missa/missa.asp?gomonth=${isoDate}`,
         en_source_url: fetched.en_source_url || `https://www.catholic.org/bible/daily_reading/?select_date=${isoDate}`,
         gospel_diff: Boolean(fetched.gospel_diff),
@@ -1854,9 +2127,15 @@
         en_gospel_ref: fetched.en_gospel_ref || ''
       };
 
-      if (currentFetchedMeta.gospel_diff) {
+      if (isEdit) {
+        editFetchedMeta = metaObj;
+      } else {
+        currentFetchedMeta = metaObj;
+      }
+
+      if (metaObj.gospel_diff) {
         diffAlertEl.classList.remove('hidden');
-        diffDetailEl.textContent = `한글 굿뉴스 복음(${currentFetchedMeta.ko_gospel_ref})과 보편/영문 전례 복음(${currentFetchedMeta.en_gospel_ref})이 다릅니다. 바르샤바 현지 주일 전례력에 맞춰 확인해 주세요.`;
+        diffDetailEl.textContent = `한글 굿뉴스 복음(${metaObj.ko_gospel_ref})과 보편/영문 전례 복음(${metaObj.en_gospel_ref})이 다릅니다. 바르샤바 현지 주일 전례력에 맞춰 확인해 주세요.`;
       } else {
         diffAlertEl.classList.add('hidden');
       }
@@ -1917,27 +2196,9 @@
         }
       };
 
-      // '수정' 버튼을 눌러 진입한 경우 해당 미사를 업데이트
-      if (editingMassId) {
-        const targetIdx = masses.findIndex(m => m.id === editingMassId);
-        if (targetIdx !== -1) {
-          masses[targetIdx] = {
-            ...masses[targetIdx],
-            ...massPayload
-          };
-          syncMassToBulletinHistory(masses[targetIdx]);
-        }
-        editingMassId = null;
-        closeModal('addMassModal');
-        renderMassSection();
-        showToast('미사 및 주보 정보가 수정되었습니다.');
-        return;
-      }
-
       if (mode === 'sunday') {
         const primaryIdx = masses.findIndex(m => m.isPrimarySunday);
         if (primaryIdx !== -1) {
-          // 교체 전 기존 주일 미사도 지난 주보 보관함에 보존
           syncMassToBulletinHistory(masses[primaryIdx]);
           masses[primaryIdx] = {
             ...masses[primaryIdx],
@@ -2056,53 +2317,47 @@
       }
     });
 
-    // 홈 화면에서 '수정' 클릭 시 '미사 추가'와 동일한 1~5단계 모달에 현재 미사 데이터를 채워 오픈
+    // 홈 화면에서 '수정' 클릭 시 별도의 수정 전용 모달(editMassModal)에 현재 미사 데이터를 채워 오픈
     function openEditMassModal(massId) {
       const m = masses.find(x => x.id === massId);
       if (!m) return;
       editingMassId = massId;
 
-      document.getElementById('addMassModalHeaderTitle').textContent = '미사 및 주보 수정 (매일미사 · 성가 · 봉사자 · 전례문)';
-      document.getElementById('addMassModalHeaderSub').textContent = '날짜를 다시 불러오거나 성가, 봉사자, 주보 말씀을 자유롭게 수정하세요.';
-      document.getElementById('addMassSubmitBtn').textContent = '수정 내용 저장하기';
-      document.getElementById('newMassModeRadioGroup').classList.add('hidden');
-      document.getElementById('editMassModeNotice').classList.remove('hidden');
+      document.getElementById('editMassDatePicker').value = m.isoDate || '2026-11-22';
+      document.getElementById('editMassFormattedDate').value = m.fullDate || '';
+      document.getElementById('editMassTime').value = m.time || '오전 09:30';
+      document.getElementById('editMassColor').value = m.color || 'green';
+      document.getElementById('editMassTitle').value = m.title || '';
 
-      document.getElementById('newMassDatePicker').value = m.isoDate || '2026-11-22';
-      document.getElementById('newMassFormattedDate').value = m.fullDate || '';
-      document.getElementById('newMassTime').value = m.time || '오전 09:30';
-      document.getElementById('newMassColor').value = m.color || 'green';
-      document.getElementById('newMassTitle').value = m.title || '';
+      document.getElementById('editMassHymnEntrance').value = m.hymns?.entrance || '';
+      document.getElementById('editMassHymnOffertory').value = m.hymns?.offertory || '';
+      document.getElementById('editMassHymnCommunion').value = m.hymns?.communion || '';
+      document.getElementById('editMassHymnRecessional').value = m.hymns?.recessional || '';
 
-      document.getElementById('newMassHymnEntrance').value = m.hymns?.entrance || '';
-      document.getElementById('newMassHymnOffertory').value = m.hymns?.offertory || '';
-      document.getElementById('newMassHymnCommunion').value = m.hymns?.communion || '';
-      document.getElementById('newMassHymnRecessional').value = m.hymns?.recessional || '';
-
-      document.getElementById('newMassVolCommentator').value = m.volunteers?.commentator || '';
-      document.getElementById('newMassVolReading1').value = m.volunteers?.reading1 || '';
-      document.getElementById('newMassVolReading2').value = m.volunteers?.reading2 || '';
-      document.getElementById('newMassVolServer1').value = m.volunteers?.server1 || '';
-      document.getElementById('newMassVolServer2').value = m.volunteers?.server2 || '';
+      document.getElementById('editMassVolCommentator').value = m.volunteers?.commentator || '';
+      document.getElementById('editMassVolReading1').value = m.volunteers?.reading1 || '';
+      document.getElementById('editMassVolReading2').value = m.volunteers?.reading2 || '';
+      document.getElementById('editMassVolServer1').value = m.volunteers?.server1 || '';
+      document.getElementById('editMassVolServer2').value = m.volunteers?.server2 || '';
 
       const r = m.readings || {};
-      document.getElementById('newMassTodayLiturgy').value = r.today_liturgy || '';
-      document.getElementById('newMassRefReading1').value = r.reading1_ref || '';
-      document.getElementById('newMassReading1Text').value = r.reading1 || '';
-      document.getElementById('newMassRefPsalm').value = r.psalm_ref || '';
-      document.getElementById('newMassPsalmText').value = r.psalm || '';
-      document.getElementById('newMassRefReading2').value = r.reading2_ref || '';
-      document.getElementById('newMassReading2Text').value = r.reading2 || '';
-      document.getElementById('newMassRefAcclamation').value = r.acclamation_ref || '';
-      document.getElementById('newMassAcclamationText').value = r.acclamation || '';
-      document.getElementById('newMassRefGospel').value = r.gospel_ref || '';
-      document.getElementById('newMassGospelText').value = r.gospel || '';
-      document.getElementById('newMassPrayersText').value = r.prayers || '';
-      document.getElementById('newMassRefCommunion').value = r.communion_ref || '';
-      document.getElementById('newMassCommunionText').value = r.communion || '';
-      document.getElementById('newMassMeditationText').value = r.meditation || '';
+      document.getElementById('editMassTodayLiturgy').value = r.today_liturgy || '';
+      document.getElementById('editMassRefReading1').value = r.reading1_ref || '';
+      document.getElementById('editMassReading1Text').value = r.reading1 || '';
+      document.getElementById('editMassRefPsalm').value = r.psalm_ref || '';
+      document.getElementById('editMassPsalmText').value = r.psalm || '';
+      document.getElementById('editMassRefReading2').value = r.reading2_ref || '';
+      document.getElementById('editMassReading2Text').value = r.reading2 || '';
+      document.getElementById('editMassRefAcclamation').value = r.acclamation_ref || '';
+      document.getElementById('editMassAcclamationText').value = r.acclamation || '';
+      document.getElementById('editMassRefGospel').value = r.gospel_ref || '';
+      document.getElementById('editMassGospelText').value = r.gospel || '';
+      document.getElementById('editMassPrayersText').value = r.prayers || '';
+      document.getElementById('editMassRefCommunion').value = r.communion_ref || '';
+      document.getElementById('editMassCommunionText').value = r.communion || '';
+      document.getElementById('editMassMeditationText').value = r.meditation || '';
 
-      currentFetchedMeta = {
+      editFetchedMeta = {
         source_url: m.sourceUrl || `https://maria.catholic.or.kr/mi_pr/missa/missa.asp?gomonth=${m.isoDate}`,
         en_source_url: `https://www.catholic.org/bible/daily_reading/?select_date=${m.isoDate}`,
         gospel_diff: Boolean(m.gospelDiff),
@@ -2110,19 +2365,82 @@
         en_gospel_ref: m.enGospelRef || ''
       };
 
-      const badgeEl = document.getElementById('dailyMissaBadge');
-      const statusEl = document.getElementById('dailyMissaFetchStatus');
-      badgeEl.textContent = '수정 모드';
+      const badgeEl = document.getElementById('editDailyMissaBadge');
+      const statusEl = document.getElementById('editDailyMissaFetchStatus');
+      badgeEl.textContent = '현재 미사 정보';
       badgeEl.className = 'px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold';
       statusEl.innerHTML = '현재 등록된 미사 정보가 불러와졌습니다. 필요 시 날짜 변경 후 <strong>[매일미사 불러오기]</strong>를 다시 실행할 수 있습니다.';
 
-      if (currentFetchedMeta.gospel_diff) {
-        document.getElementById('newMassGospelDiffAlert').classList.remove('hidden');
+      if (editFetchedMeta.gospel_diff) {
+        document.getElementById('editMassGospelDiffAlert').classList.remove('hidden');
       } else {
-        document.getElementById('newMassGospelDiffAlert').classList.add('hidden');
+        document.getElementById('editMassGospelDiffAlert').classList.add('hidden');
       }
 
-      document.getElementById('addMassModal').classList.remove('hidden');
+      document.getElementById('editMassModal').classList.remove('hidden');
+    }
+
+    function submitEditMass(e) {
+      e.preventDefault();
+      const targetId = editingMassId || activeMassId;
+      const targetIdx = masses.findIndex(m => m.id === targetId);
+      if (targetIdx === -1) return;
+
+      const isoDate = document.getElementById('editMassDatePicker').value;
+      const d = new Date(isoDate + 'T12:00:00');
+      const daysKo = ['주일', '월', '화', '수', '목', '금', '토'];
+      const shortDate = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}(${daysKo[d.getDay()]})`;
+
+      const updatedMass = {
+        ...masses[targetIdx],
+        isoDate,
+        shortDate,
+        fullDate: document.getElementById('editMassFormattedDate').value,
+        time: document.getElementById('editMassTime').value || '오전 09:30',
+        title: document.getElementById('editMassTitle').value,
+        color: document.getElementById('editMassColor').value,
+        sourceUrl: editFetchedMeta.source_url,
+        gospelDiff: editFetchedMeta.gospel_diff,
+        koGospelRef: document.getElementById('editMassRefGospel').value.trim() || editFetchedMeta.ko_gospel_ref,
+        enGospelRef: editFetchedMeta.en_gospel_ref,
+        hymns: {
+          entrance: formatHymnDisplay(document.getElementById('editMassHymnEntrance').value),
+          offertory: formatHymnDisplay(document.getElementById('editMassHymnOffertory').value),
+          communion: formatHymnDisplay(document.getElementById('editMassHymnCommunion').value),
+          recessional: formatHymnDisplay(document.getElementById('editMassHymnRecessional').value)
+        },
+        volunteers: {
+          commentator: document.getElementById('editMassVolCommentator').value.trim(),
+          reading1: document.getElementById('editMassVolReading1').value.trim(),
+          reading2: document.getElementById('editMassVolReading2').value.trim(),
+          server1: document.getElementById('editMassVolServer1').value.trim(),
+          server2: document.getElementById('editMassVolServer2').value.trim()
+        },
+        readings: {
+          today_liturgy: document.getElementById('editMassTodayLiturgy').value.trim(),
+          reading1_ref: document.getElementById('editMassRefReading1').value.trim(),
+          reading1: document.getElementById('editMassReading1Text').value.trim(),
+          psalm_ref: document.getElementById('editMassRefPsalm').value.trim(),
+          psalm: document.getElementById('editMassPsalmText').value.trim(),
+          reading2_ref: document.getElementById('editMassRefReading2').value.trim(),
+          reading2: document.getElementById('editMassReading2Text').value.trim(),
+          acclamation_ref: document.getElementById('editMassRefAcclamation').value.trim(),
+          acclamation: document.getElementById('editMassAcclamationText').value.trim(),
+          gospel_ref: document.getElementById('editMassRefGospel').value.trim(),
+          gospel: document.getElementById('editMassGospelText').value.trim(),
+          prayers: document.getElementById('editMassPrayersText').value.trim(),
+          communion_ref: document.getElementById('editMassRefCommunion').value.trim(),
+          communion: document.getElementById('editMassCommunionText').value.trim(),
+          meditation: document.getElementById('editMassMeditationText').value.trim()
+        }
+      };
+
+      masses[targetIdx] = updatedMass;
+      syncMassToBulletinHistory(updatedMass);
+      editingMassId = null;
+      closeModal('editMassModal');
+      renderMassSection();
+      showToast('미사 및 주보 정보가 수정되었습니다.');
     }
 
     function deleteMassTab(massId) {
@@ -2132,36 +2450,81 @@
       showToast('선택한 미사 탭이 삭제되었습니다.');
     }
 
-    // ==================== 지난 주보 보기 리스트 모달 & 주보 상세 보기 모달 ====================
-    function openPastLeafletsModal() {
-      // 현재 활성 미사들도 모두 보관함에 동기화
+    // ==================== 지난 주보 보기 리스트 모달 (5건씩 페이지네이션) & 주보 상세 보기 모달 ====================
+    function openPastLeafletsModal(page = 1) {
       masses.forEach(m => syncMassToBulletinHistory(m));
-
-      const container = document.getElementById('pastLeafletsListContainer');
-      if (!bulletinHistory.length) {
-        container.innerHTML = '<p class="p-6 text-center text-xs text-slate-400">생성된 주보 내역이 없습니다.</p>';
-      } else {
-        container.innerHTML = bulletinHistory.map(item => {
-          const cMeta = getLiturgicalColorMeta(item.color);
-          const isCurrentActive = item.id === activeMassId;
-          return `
-            <button type="button" onclick="openLeafletFromHistory('${item.id}')" class="w-full text-left p-3.5 bg-white hover:bg-amber-50/60 transition flex items-center justify-between gap-3">
-              <div class="min-w-0 space-y-1">
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <span class="w-2.5 h-2.5 rounded-full ${cMeta.dot} shrink-0"></span>
-                  <span class="text-xs font-bold text-slate-600">${item.fullDate}</span>
-                  <span class="text-[11px] text-slate-400">· ${item.time}</span>
-                  ${isCurrentActive ? '<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-extrabold">현재 선택된 주보</span>' : ''}
-                </div>
-                <p class="text-sm font-extrabold text-slate-900 truncate">${item.title}</p>
-                <p class="text-[11px] text-slate-500 truncate">복음: ${item.readings?.gospel_ref || '-'} · 해설: ${item.volunteers?.commentator || '미정'}</p>
-              </div>
-              <span class="shrink-0 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold">주보 열기 &gt;</span>
-            </button>
-          `;
-        }).join('');
-      }
+      pastLeafletsCurrentPage = page;
+      renderPastLeafletsPage();
       document.getElementById('pastLeafletsModal').classList.remove('hidden');
+    }
+
+    function renderPastLeafletsPage() {
+      const container = document.getElementById('pastLeafletsListContainer');
+      const paginationEl = document.getElementById('pastLeafletsPagination');
+      const totalBadge = document.getElementById('pastLeafletsTotalBadge');
+
+      const totalItems = bulletinHistory.length;
+      if (totalBadge) totalBadge.textContent = `총 ${totalItems}건`;
+
+      if (!totalItems) {
+        container.innerHTML = '<p class="p-6 text-center text-xs text-slate-400">생성된 주보 내역이 없습니다.</p>';
+        paginationEl.innerHTML = '';
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(totalItems / PAST_LEAFLETS_PER_PAGE));
+      if (pastLeafletsCurrentPage > totalPages) pastLeafletsCurrentPage = totalPages;
+      if (pastLeafletsCurrentPage < 1) pastLeafletsCurrentPage = 1;
+
+      const startIdx = (pastLeafletsCurrentPage - 1) * PAST_LEAFLETS_PER_PAGE;
+      const pageItems = bulletinHistory.slice(startIdx, startIdx + PAST_LEAFLETS_PER_PAGE);
+
+      container.innerHTML = pageItems.map(item => {
+        const cMeta = getLiturgicalColorMeta(item.color);
+        const isCurrentActive = item.id === activeMassId;
+        return `
+          <button type="button" onclick="openLeafletFromHistory('${item.id}')" class="w-full text-left p-3.5 bg-white hover:bg-amber-50/60 transition flex items-center justify-between gap-3">
+            <div class="min-w-0 space-y-1">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full ${cMeta.dot} shrink-0"></span>
+                <span class="text-xs font-bold text-slate-600">${item.fullDate}</span>
+                <span class="text-[11px] text-slate-400">· ${item.time}</span>
+                ${isCurrentActive ? '<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-extrabold">현재 선택된 주보</span>' : ''}
+              </div>
+              <p class="text-sm font-extrabold text-slate-900 truncate">${item.title}</p>
+              <p class="text-[11px] text-slate-500 truncate">복음: ${item.readings?.gospel_ref || '-'} · 해설: ${item.volunteers?.commentator || '미정'}</p>
+            </div>
+            <span class="shrink-0 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold">주보 열기 &gt;</span>
+          </button>
+        `;
+      }).join('');
+
+      // 페이지네이션 버튼 렌더링 (이전 / 1, 2, 3... / 다음)
+      let pageBtnsHtml = '';
+      pageBtnsHtml += `
+        <button type="button" onclick="goToPastLeafletsPage(${pastLeafletsCurrentPage - 1})" ${pastLeafletsCurrentPage === 1 ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs font-bold ${pastLeafletsCurrentPage === 1 ? 'text-slate-300 bg-stone-50 cursor-not-allowed' : 'text-slate-700 bg-white hover:bg-stone-100'}">
+          &lt; 이전
+        </button>
+      `;
+      for (let p = 1; p <= totalPages; p++) {
+        const isCurr = p === pastLeafletsCurrentPage;
+        pageBtnsHtml += `
+          <button type="button" onclick="goToPastLeafletsPage(${p})" class="w-8 h-8 rounded-lg text-xs font-extrabold transition ${isCurr ? 'bg-slate-900 text-white shadow-xs' : 'bg-white border border-stone-200 text-slate-700 hover:bg-stone-100'}">
+            ${p}
+          </button>
+        `;
+      }
+      pageBtnsHtml += `
+        <button type="button" onclick="goToPastLeafletsPage(${pastLeafletsCurrentPage + 1})" ${pastLeafletsCurrentPage === totalPages ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs font-bold ${pastLeafletsCurrentPage === totalPages ? 'text-slate-300 bg-stone-50 cursor-not-allowed' : 'text-slate-700 bg-white hover:bg-stone-100'}">
+          다음 &gt;
+        </button>
+      `;
+      paginationEl.innerHTML = pageBtnsHtml;
+    }
+
+    function goToPastLeafletsPage(pageNum) {
+      pastLeafletsCurrentPage = pageNum;
+      renderPastLeafletsPage();
     }
 
     function openLeafletFromHistory(historyId) {
